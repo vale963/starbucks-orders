@@ -9,20 +9,35 @@ export class ProductsService {
     constructor(@InjectRepository(ProductEntity) private repo: Repository<ProductEntity>) { }
 
     findAll() { return this.repo.find(); }
-    findOne(id: number) { return this.repo.findOne({ where: { id } }); }
+
+    findOne(id: number) {
+        const product =  this.repo.findOne({ where: { id } });
+        if (!product) {
+            throw new Error(`Producto con id ${id} no encontrado`);
+        }
+        return product;
+    }
+
 
     create(dto: CreateProductDto) {
         const p = this.repo.create(dto);
         return this.repo.save(p);
     }
-    update(id: number, dto: Partial<CreateProductDto>) {
-        const p = this.findOne(id);
-        Object.assign(p, dto);
-        return p;
-    }
-    async remove (id:number){
+    async update(id: number, dto: Partial<CreateProductDto>) {
         const p = await this.findOne(id);
+        if (!p) {
+            throw new Error('Producto no encontrado');
+        }
+        Object.assign(p, dto);
+        return this.repo.save(p);
+    }
+    async remove(id: number) {
+        const p = await this.findOne(id);
+        if (!p) {
+            throw new Error('Producto no encontrado');
+        }
         return this.repo.remove(p);
     }
-    }
+
+}
 
